@@ -8,8 +8,6 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,5 +20,44 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: system-ui, -apple-system, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
 }
+
+/* ---------- 360 熱點樣式 ---------- */
+.hs {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+}
+.hs-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font: 600 16px/1 system-ui, sans-serif;
+  color: #fff;
+  background: rgba(15, 23, 42, 0.72);
+  border: 2px solid #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  transition: transform 0.15s;
+}
+.hs:hover .hs-icon { transform: scale(1.12); }
+.hs-scene .hs-icon { background: rgba(14, 116, 144, 0.85); }
+.hs-artwork .hs-icon { background: rgba(161, 98, 7, 0.88); }
+.hs-image .hs-icon { background: rgba(79, 70, 229, 0.85); }
+.hs-selected .hs-icon { outline: 3px solid #facc15; outline-offset: 2px; }
+.hs-label {
+  position: absolute;
+  left: 44px;
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  font: 500 13px/1.2 system-ui, sans-serif;
+  color: #fff;
+  background: rgba(15, 23, 42, 0.72);
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+.pano-crosshair .psv-canvas-container { cursor: crosshair !important; }
