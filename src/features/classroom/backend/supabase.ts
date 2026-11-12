@@ -120,6 +120,46 @@ export function createSupabaseBackend(url: string, publishableKey: string): Clas
       return { ...snap, joinCode: (data as { joinCode: string }).joinCode };
     },
 
+    async listSavedTours() {
+      await teacherOrThrow();
+      const { data, error } = await sb
+        .from("classroom_saved_tours")
+        .select("id,title,scenes,updated_at")
+        .order("updated_at", { ascending: false })
+        .limit(100);
+      if (error) throw toError(error, "讀取「我的導覽」失敗。如果剛更新網站，請先在 Supabase 執行新的 SQL（見說明文件）。");
+      return (data ?? []).map((r) => ({
+        id: r.id as string,
+        title: r.title as string,
+        sceneCount: Array.isArray(r.scenes) ? r.scenes.length : 0,
+        updatedAt: r.updated_at as string,
+      }));
+    },
+    async loadSavedTour(id) {
+      await teacherOrThrow();
+      const { data, error } = await sb.from("classroom_saved_tours").select("id,title,scenes").eq("id", id).maybeSingle();
+      if (error) throw toError(error);
+      if (!data) throw new ClassroomError("invalid-input", "找不到這份導覽");
+      return TourSchema.parse({ tourId: data.id, title: data.title, scenes: data.scenes });
+    },
+    async saveTour(tourInput, id) {
+      await teacherOrThrow();
+      const tour = TourSchema.parse(tourInput);
+      const { data, error } = await sb.rpc("classroom_save_tour", {
+        p_id: id,
+        p_title: tour.title,
+        p_scenes: tour.scenes,
+        p_storage_prefix: storagePrefix,
+      });
+      if (error) throw toError(error, "儲存失敗。如果剛更新網站，請先在 Supabase 執行新的 SQL（見說明文件）。");
+      return data as { id: string; updatedAt: string };
+    },
+    async deleteSavedTour(id) {
+      await teacherOrThrow();
+      const { error } = await sb.rpc("classroom_delete_tour", { p_id: id });
+      if (error) throw toError(error);
+    },
+
     async resumeTeacherRoom(roomId) {
       const { data, error } = await sb.rpc("classroom_teacher_snapshot", { p_room_id: roomId });
       if (error) return null;
