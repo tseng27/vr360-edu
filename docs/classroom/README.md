@@ -48,6 +48,7 @@
 | `src/features/classroom/backend/supabase.ts` | Supabase 後端（Auth + RPC + Realtime） |
 | `src/app/classroom/{teacher,join,room}` | 教師端、加入頁、學生端 |
 | `supabase/migrations/20261112000000_classroom.sql` | 資料表、RLS、RPC、Realtime 與 Storage 授權 |
+| `supabase/migrations/20261112100000_classroom_saved_tours.sql` | 我的導覽（儲存／開啟／刪除） |
 | `supabase/tests/` | 本機資料庫權限測試 |
 | `e2e/classroom.e2e.cjs` | 多分頁瀏覽器測試 |
 
@@ -68,7 +69,10 @@ Mock 模式只在**同一台電腦、同一個瀏覽器**的分頁之間同步�
 ## 啟用 Supabase（跨裝置同步）— 需要你操作
 
 1. 到 <https://supabase.com> 建立專案（免費方案即可試用）。
-2. **SQL Editor** 貼上並執行 `supabase/migrations/20261112000000_classroom.sql`
+2. **SQL Editor** 依序貼上並執行 `supabase/migrations/` 裡的檔案（都可以重複執行）：
+   - `20261112000000_classroom.sql`（教室主體）
+   - `20261112100000_classroom_saved_tours.sql`（「我的導覽」儲存功能；**已經跑過第一個檔案的專案也要補跑這個**）
+
    （或用 Supabase CLI：`supabase link` 後 `supabase db push`）。
 3. **Authentication → Sign In / Providers**：開啟 **Anonymous Sign-Ins**（學生用），保留 Email 登入（老師用）。
    建議同時開啟 CAPTCHA 或 Rate Limits，降低匿名帳號被濫用的風險。

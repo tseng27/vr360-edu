@@ -118,6 +118,33 @@ export function createMockBackend(): ClassroomBackend {
       return { state, tour, joinCode };
     },
 
+    async listSavedTours() {
+      const all = read<Record<string, { tour: Tour; updatedAt: string }>>("saved-tours") ?? {};
+      return Object.entries(all)
+        .map(([id, v]) => ({ id, title: v.tour.title, sceneCount: v.tour.scenes.length, updatedAt: v.updatedAt }))
+        .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+    },
+    async loadSavedTour(id) {
+      const all = read<Record<string, { tour: Tour; updatedAt: string }>>("saved-tours") ?? {};
+      if (!all[id]) throw new ClassroomError("invalid-input", "找不到這份導覽");
+      return TourSchema.parse(all[id].tour);
+    },
+    async saveTour(tourInput, id) {
+      const tour = TourSchema.parse(tourInput);
+      const all = read<Record<string, { tour: Tour; updatedAt: string }>>("saved-tours") ?? {};
+      const key = id && all[id] ? id : "tour_" + nanoid(10);
+      if (!all[key] && Object.keys(all).length >= 100) throw new ClassroomError("invalid-input", "最多只能存 100 份導覽");
+      const updatedAt = new Date().toISOString();
+      all[key] = { tour, updatedAt };
+      write("saved-tours", all);
+      return { id: key, updatedAt };
+    },
+    async deleteSavedTour(id) {
+      const all = read<Record<string, { tour: Tour; updatedAt: string }>>("saved-tours") ?? {};
+      delete all[id];
+      write("saved-tours", all);
+    },
+
     async resumeTeacherRoom(roomId) {
       const r = read<StoredRoom>("room:" + roomId);
       if (!r || r.teacherUserId !== MOCK_TEACHER.userId) return null;

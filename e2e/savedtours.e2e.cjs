@@ -1,0 +1,47 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+/** 我的導覽（mock 後端）：儲存、重新整理後草稿還在、開啟、另存、刪除 */
+const { chromium } = require("playwright");
+const BASE = process.env.BASE_URL || "http://localhost:3100";
+let fail = 0;
+const check = (n, ok, d = "") => { if (!ok) fail++; console.log(`${ok ? "PASS" : "FAIL"}  ${n}${d ? "  — " + d : ""}`); };
+(async () => {
+  const browser = await chromium.launch();
+  const ctx = await browser.newContext();
+  const p = await ctx.newPage();
+  const errors = [];
+  p.on("pageerror", (e) => errors.push(e.message));
+  p.on("dialog", (d) => d.accept());
+  await p.goto(`${BASE}/classroom/teacher`);
+  await p.waitForSelector('[data-testid="my-tours"]');
+  const title = p.getByLabel("導覽名稱");
+  await title.fill("五年級校園導覽");
+  await p.getByLabel("第 1 站名稱").fill("司令台");
+  check("修改後顯示尚未儲存", /尚未儲存/.test(await p.textContent('[data-testid="save-status"]')));
+  await p.click('[data-testid="save-tour"]');
+  await p.waitForFunction(() => /已儲存/.test(document.querySelector('[data-testid="save-status"]').textContent));
+  check("可以儲存導覽", true);
+  await p.reload();
+  await p.waitForSelector('[data-testid="my-tours"]');
+  check("重新整理後內容還在", (await p.getByLabel("第 1 站名稱").inputValue()) === "司令台");
+  const opts = await p.locator('select[aria-label="開啟我的導覽"] option').allTextContents();
+  check("我的導覽清單有這份", opts.some((o) => o.includes("五年級校園導覽")), opts.join(" | "));
+  await p.getByRole("button", { name: "恢復示範導覽" }).click();
+  check("恢復示範導覽", (await p.getByLabel("第 1 站名稱").inputValue()) !== "司令台");
+  const val = await p.locator('select[aria-label="開啟我的導覽"] option', { hasText: "五年級校園導覽" }).getAttribute("value");
+  await p.selectOption('select[aria-label="開啟我的導覽"]', val);
+  await p.waitForFunction(() => /已開啟/.test(document.querySelector('[data-testid="save-status"]').textContent));
+  check("從清單開啟導覽", (await p.getByLabel("第 1 站名稱").inputValue()) === "司令台");
+  await title.fill("五年級校園導覽 B");
+  await p.getByRole("button", { name: "另存新的一份" }).click();
+  await p.waitForFunction(() => document.querySelectorAll('select[aria-label="開啟我的導覽"] option').length === 3);
+  check("另存新的一份後有 2 份", true);
+  await p.getByRole("button", { name: "刪除這份" }).click();
+  await p.waitForFunction(() => document.querySelectorAll('select[aria-label="開啟我的導覽"] option').length === 2);
+  check("刪除後剩 1 份", true);
+  await p.getByRole("button", { name: /建立教室/ }).click();
+  await p.waitForSelector('[data-testid="join-code"]');
+  check("用存好的導覽建立教室", true);
+  check("沒有 JavaScript 錯誤", errors.length === 0, errors.join("; "));
+  await browser.close();
+  process.exit(fail ? 1 : 0);
+})();

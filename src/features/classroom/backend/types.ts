@@ -39,6 +39,13 @@ export interface CreatedRoom extends RoomSnapshot {
   joinCode: string;
 }
 
+export interface SavedTourSummary {
+  id: string;
+  title: string;
+  sceneCount: number;
+  updatedAt: string;
+}
+
 export interface ClassroomBackend {
   kind: "mock" | "supabase";
   /** 教師登入狀態；mock 模式會回傳一個本機教師 */
@@ -48,6 +55,12 @@ export interface ClassroomBackend {
   /** 教師上傳全景（會重新編碼、移除 EXIF/GPS），回傳可放進 scene.panoramaUrl 的網址 */
   uploadPanorama(file: Blob): Promise<{ panoramaUrl: string; thumbUrl: string }>;
   createRoom(tour: Tour, ttlMinutes: number): Promise<CreatedRoom>;
+  /** 我的導覽：存在老師帳號下（mock 模式存在這個瀏覽器） */
+  listSavedTours(): Promise<SavedTourSummary[]>;
+  loadSavedTour(id: string): Promise<Tour>;
+  /** id 為 null 時新增一份；回傳存檔 id */
+  saveTour(tour: Tour, id: string | null): Promise<{ id: string; updatedAt: string }>;
+  deleteSavedTour(id: string): Promise<void>;
   /** 教師重新整理後取回自己開著的房間 */
   resumeTeacherRoom(roomId: string): Promise<CreatedRoom | null>;
   /** 由後端分配序號、驗證教師身分，回傳新狀態並廣播給全班 */

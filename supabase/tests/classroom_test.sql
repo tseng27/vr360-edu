@@ -156,4 +156,37 @@ select pg_temp.expect_error($q$select public.classroom_join_room('ABCDEF', 'x')$
 select pg_temp.expect_error($q$select public.classroom_teacher_action(gen_random_uuid(), '{"type":"SESSION_END"}')$q$, null);
 reset role;
 
+\echo '== 14. 我的導覽：只有老師能存、只看得到自己的、不能存外部圖片網址'
+set role authenticated;
+select pg_temp.as_user('00000000-0000-0000-0000-0000000000a2');
+select pg_temp.expect_error($q$select public.classroom_save_tour(null, 'x', '[{"sceneId":"a","name":"A","panoramaUrl":"/classroom/scenes/a.jpg"}]')$q$, 'not-teacher');
+select pg_temp.as_user('00000000-0000-0000-0000-0000000000b1');
+select pg_temp.expect_error($q$select public.classroom_save_tour(null, 'x', '[{"sceneId":"a","name":"A","panoramaUrl":"/classroom/scenes/a.jpg"}]')$q$, 'not-teacher');
+select pg_temp.as_user('00000000-0000-0000-0000-0000000000a1');
+select pg_temp.expect_error($q$select public.classroom_save_tour(null, 'x', '[{"sceneId":"a","name":"A","panoramaUrl":"https://evil.example/a.jpg"}]')$q$, 'invalid-input');
+insert into t_ctx values ('saved', (public.classroom_save_tour(null, '我的導覽', '[{"sceneId":"a","name":"A","panoramaUrl":"/classroom/scenes/a.jpg"}]')->>'id'));
+select public.classroom_save_tour((select v::uuid from t_ctx where k = 'saved'), '改名了', '[{"sceneId":"a","name":"A","panoramaUrl":"/classroom/scenes/a.jpg"}]') is not null;
+select 'teacher sees ' || count(*) || ' saved, title=' || max(title) from public.classroom_saved_tours;
+select pg_temp.expect_error($q$insert into public.classroom_saved_tours (owner_id, title, scenes) values (auth.uid(), 'x', '[]')$q$, null);
+select pg_temp.as_user('00000000-0000-0000-0000-0000000000a2');
+select 'other user sees ' || count(*) from public.classroom_saved_tours;
+select pg_temp.expect_error($q$select public.classroom_delete_tour((select v::uuid from t_ctx where k = 'saved'))$q$, 'not-teacher');
+reset role;
+insert into public.classroom_teachers (user_id, display_name) values ('00000000-0000-0000-0000-0000000000a2', '另一位老師');
+set role authenticated;
+select pg_temp.as_user('00000000-0000-0000-0000-0000000000a2');
+select 'other teacher sees ' || count(*) from public.classroom_saved_tours;
+select public.classroom_save_tour((select v::uuid from t_ctx where k = 'saved'), '偷改', '[{"sceneId":"a","name":"A","panoramaUrl":"/classroom/scenes/a.jpg"}]')->>'id' <> (select v from t_ctx where k = 'saved') as other_teacher_gets_new_copy;
+select public.classroom_delete_tour((select v::uuid from t_ctx where k = 'saved'));
+reset role;
+select 'original title still: ' || title from public.classroom_saved_tours where id = (select v::uuid from t_ctx where k = 'saved');
+set role authenticated;
+select pg_temp.as_user('00000000-0000-0000-0000-0000000000a1');
+select public.classroom_delete_tour((select v::uuid from t_ctx where k = 'saved'));
+reset role;
+select 'after owner delete: ' || count(*) from public.classroom_saved_tours;
+set role anon;
+select pg_temp.expect_error($q$select public.classroom_save_tour(null, 'x', '[]')$q$, null);
+reset role;
+
 \echo 'ALL DATABASE TESTS PASSED'
