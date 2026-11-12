@@ -29,7 +29,7 @@ export default function Home() {
       localStorage.setItem("vr360-author", author);
     } catch {}
     const p = await createProject(title.trim(), type, author.trim());
-    router.push(`/edit/${p.id}`);
+    router.push(`/edit?id=${p.id}`);
   }
 
   async function onImport(e: React.ChangeEvent<HTMLInputElement>) {
@@ -133,10 +133,10 @@ export default function Home() {
                       <h3 className="font-semibold">{p.title}</h3>
                       {p.author && <p className="text-sm text-slate-500">{p.author}</p>}
                       <div className="flex gap-2 pt-1 text-sm">
-                        <Link href={`/edit/${p.id}`} className="rounded bg-sky-700 px-3 py-1 text-white">
+                        <Link href={`/edit?id=${p.id}`} className="rounded bg-sky-700 px-3 py-1 text-white">
                           編輯
                         </Link>
-                        <Link href={`/view/${p.id}`} className="rounded border px-3 py-1">
+                        <Link href={`/view?id=${p.id}`} className="rounded border px-3 py-1">
                           觀看
                         </Link>
                         <button

@@ -19,7 +19,7 @@
 | 階段二：Supabase 資料庫、RLS、Realtime 授權 | ✅ SQL 完成，本機 PostgreSQL 權限測試通過 |
 | 階段二：連上真正的 Supabase 專案、跨裝置測試 | ⛔ **尚未進行**：需要你建立 Supabase 專案（見下方步驟） |
 | 階段三：WebXR VR 模式 | 🟡 程式完成；**Quest / VIVE 都還沒有實機測試** |
-| 階段四：GitHub Pages | ⛔ **尚未完成**：原專案的 `/edit/[id]`、`/view/[id]` 動態路由不支援靜態匯出，見「部署」 |
+| 階段四：GitHub Pages | 🟡 靜態匯出與自動發佈流程完成，本機以 `/vr360-edu/` 子路徑測試通過；需要你在 GitHub 開啟 Pages（見「部署」） |
 | 階段五：19 人課堂測試 | ⛔ 需校內 Wi-Fi 實測；目前只做了 10 個模擬分頁 |
 
 ## 架構
@@ -98,10 +98,16 @@ Mock 模式只在**同一台電腦、同一個瀏覽器**的分頁之間同步�
 WebXR 與手機陀螺儀都**必須 HTTPS**。
 
 - **Vercel / Netlify / 任何支援 Next.js 的主機**：目前最直接的方式，整個專案（含原本的 360 平台）照常 `next build` 部署。
-- **GitHub Pages（規格要求）**：GitHub Pages 只能放靜態檔，需要 `output: "export"`。
-  目前卡在原專案的 `/edit/[id]`、`/view/[id]` 動態路由（`next build` 會回報缺少 `generateStaticParams()`）。
-  要上 GitHub Pages，必須把這兩頁改成 `/edit?id=…`、`/view?id=…` 這類路由——這會動到原本的功能，所以**沒有在這次變更裡做**，等你決定。
-  `/classroom` 本身已用 query string 路由並支援 `NEXT_PUBLIC_BASE_PATH`，靜態匯出時不需要再改。
+- **GitHub Pages（學生免登入）**：`.github/workflows/pages.yml` 會在每次推到 `main` 時自動靜態匯出並發佈到
+  `https://<帳號>.github.io/vr360-edu/`。第一次要做一次設定：
+  1. GitHub 倉庫 → **Settings → Pages → Build and deployment → Source** 選 **GitHub Actions**。
+  2. 到 **Actions** 分頁，對「Deploy to GitHub Pages」按 **Run workflow**（之後每次合併到 main 會自動更新）。
+  3. 要跨裝置同步時，在 **Settings → Secrets and variables → Actions → Variables** 新增
+     `CLASSROOM_BACKEND=supabase`、`SUPABASE_URL`、`SUPABASE_PUBLISHABLE_KEY`（只能放 publishable key），再重跑一次 workflow。
+
+  為了能靜態匯出，原本的編輯 / 播放頁網址從 `/edit/<id>`、`/view/<id>` 改成 `/edit?id=<id>`、`/view?id=<id>`
+  （專案資料存在瀏覽器裡，不受影響；只有以前存下來的舊網址書籤會失效）。
+  本機模擬：`STATIC_EXPORT=1 NEXT_PUBLIC_BASE_PATH=/vr360-edu npm run build`，產出在 `out/`。
   GitHub Pages 只負責靜態頁面；即時同步與權限仍然由 Supabase 提供。
 
 ## 費用與額度（2026-11 參考，請以 Supabase 官方定價頁為準）
