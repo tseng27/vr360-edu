@@ -19,6 +19,7 @@
 | 階段二：Supabase 資料庫、RLS、Realtime 授權 | ✅ SQL 完成，本機 PostgreSQL 權限測試通過 |
 | 階段二：連上真正的 Supabase 專案、跨裝置測試 | ⛔ **尚未進行**：需要你建立 Supabase 專案（見下方步驟） |
 | 階段三：WebXR VR 模式 | 🟡 程式完成；**Quest / VIVE 都還沒有實機測試** |
+| 階段三之二：Cardboard 眼鏡模式（手機左右分割＋陀螺儀） | 🟡 手機模擬測試 8/8 通過；**尚未在真的 iPhone / Android＋紙盒眼鏡上測試** |
 | 階段四：GitHub Pages | 🟡 靜態匯出與自動發佈流程完成，本機以 `/vr360-edu/` 子路徑測試通過；需要你在 GitHub 開啟 Pages（見「部署」） |
 | 階段五：19 人課堂測試 | ⛔ 需校內 Wi-Fi 實測；目前只做了 10 個模擬分頁 |
 

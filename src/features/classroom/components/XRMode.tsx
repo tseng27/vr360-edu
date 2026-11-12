@@ -47,7 +47,16 @@ export function useXRSupport(): Support {
   return s;
 }
 
-export default function XRMode({ imageUrl, lookHere }: { imageUrl?: string; lookHere: LookTarget | null }) {
+export default function XRMode({
+  imageUrl,
+  lookHere,
+  hideUnsupported = false,
+}: {
+  imageUrl?: string;
+  lookHere: LookTarget | null;
+  /** 手機上已經有 Cardboard 模式時，不必再顯示「不支援 VR」 */
+  hideUnsupported?: boolean;
+}) {
   const support = useXRSupport();
   const [active, setActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -126,7 +135,7 @@ export default function XRMode({ imageUrl, lookHere }: { imageUrl?: string; look
 
   if (support.state === "checking") return null;
   if (support.state === "unsupported")
-    return (
+    return hideUnsupported ? null : (
       <p data-testid="xr-unsupported" className="max-w-[11rem] rounded bg-black/50 px-2 py-1 text-right text-[11px] leading-snug text-white/80">
         {support.reason}，使用一般 360° 模式
       </p>

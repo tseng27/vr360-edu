@@ -6,6 +6,7 @@ import { assertTourMediaAllowed, ClassroomError, getBackend, type ConnectionStat
 import ClassroomPano, { type ClassroomPanoHandle } from "@/features/classroom/components/ClassroomPano";
 import LookHint from "@/features/classroom/components/LookHint";
 import XRMode from "@/features/classroom/components/XRMode";
+import CardboardMode, { useCardboardAvailable } from "@/features/classroom/components/CardboardMode";
 import { asset } from "@/features/classroom/config";
 import type { InfoHotspot, LookTarget } from "@/features/classroom/protocol";
 import { applyEvent, visibleSceneId } from "@/features/classroom/reducer";
@@ -38,6 +39,7 @@ function StudentRoom() {
   const [retryKey, setRetryKey] = useState(0);
   const pano = useRef<ClassroomPanoHandle>(null);
   const me = useRef(loadStudentSession());
+  const cardboard = useCardboardAvailable();
   const subRef = useRef<ReturnType<typeof backend.subscribe> | null>(null);
 
   const setSnapshot = useCallback((s: RoomSnapshot) => {
@@ -232,8 +234,9 @@ function StudentRoom() {
             <span className="opacity-80">{me.current?.displayName}</span>
           </p>
         </div>
-        <div className="pointer-events-auto">
-          <XRMode imageUrl={imageUrl} lookHere={showLook ? state.lookHere : null} />
+        <div className="pointer-events-auto flex flex-col items-end gap-2">
+          <XRMode imageUrl={imageUrl} lookHere={showLook ? state.lookHere : null} hideUnsupported={cardboard} />
+          <CardboardMode imageUrl={imageUrl} lookHere={showLook ? state.lookHere : null} startView={pos} />
         </div>
       </div>
 
