@@ -49,7 +49,14 @@ export default function Home() {
       <header className="border-b bg-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
           <h1 className="text-xl font-bold">360 旅遊專案平台</h1>
-          <span className="rounded bg-amber-100 px-2 py-1 text-xs text-amber-800">原型版：資料只存在這台電腦的瀏覽器</span>
+          <div className="flex items-center gap-3">
+            {process.env.NEXT_PUBLIC_CLASSROOM_ENABLED !== "false" && (
+              <Link href="/classroom" className="rounded bg-cyan-700 px-3 py-1.5 text-sm font-medium text-white">
+                208 沉浸式探索教室
+              </Link>
+            )}
+            <span className="rounded bg-amber-100 px-2 py-1 text-xs text-amber-800">原型版：資料只存在這台電腦的瀏覽器</span>
+          </div>
         </div>
       </header>
 

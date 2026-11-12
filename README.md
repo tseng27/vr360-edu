@@ -14,6 +14,11 @@
 > 原型階段資料只存在瀏覽器的 IndexedDB（`src/lib/store.ts`），換電腦或清除瀏覽資料就會不見。
 > 下一步會換成 Supabase（Google 登入、雲端資料庫與檔案儲存），屆時只需替換 `store.ts`。
 
+## 208 沉浸式探索教室（老師帶領、全班同步）
+
+老師切換場景，全班手機 / 平板 / VR 頭盔同步切換的導覽教室，路徑 `/classroom`。
+獨立模組，可用 `NEXT_PUBLIC_CLASSROOM_ENABLED=false` 關閉。說明、部署與測試狀態見 [docs/classroom](docs/classroom/README.md)。
+
 ## 接下來
 
 1. Supabase：Google 帳號登入、雲端儲存、真正可分享的公開網址
@@ -28,6 +33,7 @@
 npm install
 npm run dev     # http://localhost:3000
 npm run build
+npm test        # 教室模組單元測試
 ```
 
 技術：Next.js 15、TypeScript、Tailwind CSS 4、[Photo Sphere Viewer 5](https://photo-sphere-viewer.js.org/)。
