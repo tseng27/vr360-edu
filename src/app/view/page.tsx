@@ -1,14 +1,14 @@
 "use client";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 import PanoViewer from "@/components/PanoViewer";
 import Thumb from "@/components/Thumb";
 import { blobUrl, getProject } from "@/lib/store";
 import { PROJECT_TYPE_LABEL, type Hotspot, type Project } from "@/lib/types";
 
-export default function ViewPage() {
-  const { id } = useParams<{ id: string }>();
+function ViewPageInner() {
+  const id = useSearchParams().get("id") ?? "";
   const [project, setProject] = useState<Project | null | undefined>(undefined);
   const [sceneId, setSceneId] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string>();
@@ -132,5 +132,14 @@ export default function ViewPage() {
         </div>
       )}
     </div>
+  );
+}
+
+// 用 ?id= 查詢參數（而不是 /[id] 動態路由），才能靜態匯出到 GitHub Pages
+export default function ViewPage() {
+  return (
+    <Suspense fallback={<p className="p-8 text-slate-500">讀取中…</p>}>
+      <ViewPageInner />
+    </Suspense>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { nanoid } from "nanoid";
 import PanoViewer, { type PanoViewerHandle } from "@/components/PanoViewer";
 import Thumb from "@/components/Thumb";
@@ -17,8 +17,8 @@ import {
   type Scene,
 } from "@/lib/types";
 
-export default function EditPage() {
-  const { id } = useParams<{ id: string }>();
+function EditPageInner() {
+  const id = useSearchParams().get("id") ?? "";
   const [project, setProject] = useState<Project | null | undefined>(undefined);
   const [sceneId, setSceneId] = useState<string | null>(null);
   const [hotspotId, setHotspotId] = useState<string | null>(null);
@@ -165,7 +165,7 @@ export default function EditPage() {
         <span className="rounded bg-slate-100 px-2 py-0.5 text-xs">{PROJECT_TYPE_LABEL[project.type]}</span>
         <span className="text-xs text-slate-500">{saved ? "已儲存" : "儲存中…"}</span>
         <button onClick={onExport} className="rounded border px-3 py-1 text-sm">匯出專案檔</button>
-        <Link href={`/view/${project.id}`} target="_blank" className="rounded bg-sky-700 px-3 py-1 text-sm text-white">
+        <Link href={`/view?id=${project.id}`} target="_blank" className="rounded bg-sky-700 px-3 py-1 text-sm text-white">
           預覽導覽
         </Link>
       </header>
@@ -479,5 +479,14 @@ function HotspotForm(props: {
         <button onClick={props.onDelete} className="ml-auto text-red-600">刪除熱點</button>
       </div>
     </div>
+  );
+}
+
+// 用 ?id= 查詢參數（而不是 /[id] 動態路由），才能靜態匯出到 GitHub Pages
+export default function EditPage() {
+  return (
+    <Suspense fallback={<p className="p-8 text-slate-500">讀取中…</p>}>
+      <EditPageInner />
+    </Suspense>
   );
 }

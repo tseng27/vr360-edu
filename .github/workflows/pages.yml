@@ -1,0 +1,54 @@
+# 把網站靜態匯出並發佈到 GitHub Pages：https://<帳號>.github.io/vr360-edu/
+# 第一次使用：Settings → Pages → Build and deployment → Source 選「GitHub Actions」
+# 跨裝置同步（Supabase）：在 Settings → Secrets and variables → Actions → Variables 設定
+#   CLASSROOM_BACKEND=supabase、SUPABASE_URL、SUPABASE_PUBLISHABLE_KEY（只能放 publishable key）
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - name: Build static site
+        run: npm run build
+        env:
+          STATIC_EXPORT: "1"
+          NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
+          NEXT_PUBLIC_CLASSROOM_BACKEND: ${{ vars.CLASSROOM_BACKEND || 'mock' }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
+      # 沒有 .nojekyll 時 GitHub Pages 會忽略 _next/ 資料夾
+      - run: touch out/.nojekyll
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
