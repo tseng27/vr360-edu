@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>漫遊美術館｜我的 VR 虛擬策展 學習單</title>
+<style>
+:root{
+  --paper:#f6f2ea; --card:#fffdf8; --ink:#1f1d1a; --muted:#6b645a; --line:#ddd4c4;
+  --accent:#1f5f5b; --accent-soft:#e3eeec; --warm:#b4532a; --warm-soft:#f6e6dc; --ok:#2f7d46; --ok-soft:#e5f2e8;
+  --serif:"Noto Serif TC","Songti TC","PMingLiU",serif;
+  --sans:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.7}
+button,input,textarea,select{font:inherit;color:inherit}
+a{color:var(--accent)}
+.wrap{max-width:860px;margin:0 auto;padding:0 18px 120px}
+header.top{position:sticky;top:0;z-index:20;background:rgba(246,242,234,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+header.top .bar{max-width:860px;margin:0 auto;padding:10px 18px;display:flex;align-items:center;gap:12px}
+.brand{font-family:var(--serif);font-weight:700;font-size:17px;white-space:nowrap}
+.brand small{display:block;font-family:var(--sans);font-weight:400;font-size:12px;color:var(--muted);line-height:1.2}
+.prog{flex:1;height:8px;background:var(--line);border-radius:8px;overflow:hidden;min-width:60px}
+.prog i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+.save-state{font-size:13px;color:var(--muted);white-space:nowrap}
+nav.steps{max-width:860px;margin:0 auto;padding:0 18px 10px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:thin}
+nav.steps button{flex:0 0 auto;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:4px 12px;font-size:14px;cursor:pointer}
+nav.steps button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+nav.steps button.done::after{content:" ✓";color:var(--ok)}
+nav.steps button.on.done::after{color:#9fe0b0}
+
+.hero{padding:42px 0 18px}
+.hero .kicker{letter-spacing:.2em;font-size:13px;color:var(--warm);font-weight:700}
+.hero h1{font-family:var(--serif);font-size:clamp(30px,6vw,46px);line-height:1.2;margin:8px 0 12px}
+.hero p{color:var(--muted);margin:0 0 6px}
+.chain{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0}
+.chain span{border:1px solid var(--ink);border-radius:4px;padding:2px 10px;font-family:var(--serif)}
+.chain b{align-self:center;color:var(--muted);font-weight:400}
+
+section.task{display:none}
+section.task.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 22px 8px;margin:18px 0;box-shadow:0 1px 0 rgba(0,0,0,.03)}
+.sec-head{display:flex;gap:14px;align-items:flex-start;margin:28px 0 4px}
+.sec-no{font-family:var(--serif);font-size:44px;line-height:1;color:var(--accent);font-weight:700}
+.sec-head h2{font-family:var(--serif);font-size:26px;margin:2px 0 2px;line-height:1.3}
+.sec-head p{margin:0;color:var(--muted)}
+.field{margin:0 0 20px}
+.field>label,.field>.lbl{display:block;font-weight:700;margin-bottom:4px}
+.req{color:var(--warm);font-weight:700;font-size:13px;margin-left:4px}
+.hint{font-size:14px;color:var(--muted);margin:-2px 0 6px}
+input[type=text],input[type=url],textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;outline:none}
+textarea{min-height:96px;resize:vertical}
+input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.count{font-size:13px;color:var(--muted);text-align:right;margin-top:2px}
+.count.over{color:var(--warm);font-weight:700}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opts label{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:10px;padding:7px 12px;background:#fff;cursor:pointer;font-weight:400}
+.opts label:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.opts.col{flex-direction:column}
+.opts input{width:18px;height:18px;accent-color:var(--accent)}
+.group{border:1px dashed var(--line);border-radius:12px;padding:14px 14px 2px;margin:0 0 14px;background:#fffefb}
+.group h4{margin:0 0 10px;font-family:var(--serif);font-size:18px;display:flex;justify-content:space-between;align-items:center}
+.group h4 em{font-style:normal;font-size:13px;color:var(--muted);font-family:var(--sans);font-weight:400}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+@media (max-width:620px){.row2{grid-template-columns:1fr}}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--ink);background:var(--ink);color:#fff;border-radius:10px;padding:9px 16px;cursor:pointer;font-weight:700;text-decoration:none}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.warm{background:var(--warm);border-color:var(--warm)}
+.btn.small{padding:5px 11px;font-size:14px;font-weight:400}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btns{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 18px}
+.pager{display:flex;justify-content:space-between;gap:10px;margin:26px 0}
+.note{border-left:4px solid var(--accent);background:var(--accent-soft);padding:10px 14px;border-radius:0 10px 10px 0;margin:0 0 18px;font-size:15px}
+.note.warm{border-color:var(--warm);background:var(--warm-soft)}
+.fb{font-size:14px;margin-top:6px;padding:6px 10px;border-radius:8px;display:none}
+.fb.show{display:block}
+.fb.good{background:var(--ok-soft);color:var(--ok)}
+.fb.tip{background:var(--warm-soft);color:#8a3b18}
+.drop{border:2px dashed var(--line);border-radius:12px;padding:14px;background:#fff;text-align:center}
+.drop img{max-width:100%;max-height:320px;border-radius:8px;display:block;margin:0 auto 8px}
+.drop .meta{font-size:13px;color:var(--muted)}
+.drop input[type=file]{display:none}
+pre.prompt{white-space:pre-wrap;background:#1f1d1a;color:#f3efe6;border-radius:10px;padding:14px;font-size:14px;line-height:1.6;margin:0 0 8px;font-family:ui-monospace,Menlo,Consolas,monospace}
+.swatches{display:flex;gap:12px;flex-wrap:wrap}
+.swatches label{display:flex;flex-direction:column;align-items:center;font-size:13px;font-weight:400;color:var(--muted)}
+.swatches input[type=color]{width:64px;height:48px;border:1px solid var(--line);border-radius:8px;padding:2px;background:#fff}
+table.rub{width:100%;border-collapse:collapse;font-size:14px;margin-bottom:16px}
+table.rub th,table.rub td{border:1px solid var(--line);padding:6px 8px;vertical-align:top;text-align:left}
+table.rub th{background:#f0ebe1}
+table.rub td.pick{text-align:center;cursor:pointer}
+table.rub td.pick:has(input:checked){background:var(--accent-soft);font-weight:700}
+table.rub input{accent-color:var(--accent)}
+.rub-wrap{overflow-x:auto}
+.checklist{display:grid;gap:6px;margin:6px 0 4px}
+.checklist .ck{font-size:15px}
+.badge{display:inline-block;font-size:12px;border-radius:999px;padding:1px 8px;background:var(--warm-soft);color:#8a3b18;margin-left:6px;vertical-align:middle}
+.badge.must{background:var(--ink);color:#fff}
+
+/* report */
+#report{background:#fff;color:#000;font-size:11.5pt;line-height:1.6}
+#report .page{max-width:780px;margin:0 auto;padding:12mm 14mm;border:1px solid var(--line)}
+#report h1{font-family:var(--serif);font-size:20pt;margin:0 0 2pt}
+#report h2{font-family:var(--serif);font-size:14pt;border-bottom:1.5pt solid #000;margin:14pt 0 6pt;padding-bottom:2pt;break-after:avoid}
+#report .meta{font-size:10pt;color:#444}
+#report dl{margin:0}
+#report dt{font-weight:700;font-size:10.5pt;margin-top:6pt;break-after:avoid}
+#report dd{margin:0 0 2pt;white-space:pre-wrap;word-break:break-word}
+#report dd.empty{color:#999}
+#report img{max-width:100%;max-height:120mm;object-fit:contain;display:block;margin:4pt 0;break-inside:avoid}
+#report .imgs{display:flex;flex-wrap:wrap;gap:6pt}
+#report .imgs figure{margin:0;flex:1 1 45%;break-inside:avoid}
+#report figcaption{font-size:9pt;color:#555}
+#report table{border-collapse:collapse;width:100%;font-size:10pt}
+#report td,#report th{border:.6pt solid #888;padding:3pt 5pt;text-align:left;vertical-align:top}
+#report .sw{display:inline-block;width:14pt;height:14pt;border:.5pt solid #666;vertical-align:middle;margin-right:4pt}
+.foot{font-size:13px;color:var(--muted);text-align:center;margin:40px 0 0}
+
+@media print{
+  @page{size:A4 portrait;margin:12mm}
+  body{background:#fff}
+  header.top,nav.steps,.no-print,section.task:not(#t-report),.hero,.foot{display:none!important}
+  #t-report{display:block!important}
+  #t-report>*:not(#report){display:none!important}
+  .wrap{max-width:none;padding:0}
+  #report .page{border:none;padding:0;max-width:none}
+}
+</style>
+</head>
+<body>
+<header class="top no-print">
+  <div class="bar">
+    <div class="brand">漫遊美術館<small>我的 VR 虛擬策展</small></div>
+    <div class="prog" aria-label="完成進度"><i id="progBar"></i></div>
+    <span class="save-state" id="saveState">尚未填寫</span>
+  </div>
+  <nav class="steps" id="stepNav" aria-label="任務導覽"></nav>
+</header>
+
+<div class="wrap" id="app"></div>
+
+<script>
+/* ---------- 課程內容 ---------- */
+const SECTIONS = [
+ {id:'home', no:'', nav:'開始', title:'開始'},
+ {id:'s1', no:'01', nav:'01 從生活出發', title:'從生活出發｜找出我真正想說的事',
+  lead:'沒有標準題目。從最近的經驗、感受、喜歡或在意的事情開始。',
+  fields:[
+   {id:'care3', type:'textarea', label:'我最近最在意的 3 件事／3 種心情', hint:'例如：自由、離別、壓力、歸屬、環境、友情。一行寫一個。', req:true, rows:3},
+   {id:'why', type:'textarea', label:'我為什麼想把這個主題做成展覽？它跟我的生活有什麼關係？', req:true},
+   {id:'keyword', type:'text', label:'圈出最想做的一個關鍵詞', req:true},
+   {id:'question', type:'text', label:'把關鍵詞變成一個核心問題', hint:'用「為什麼……？」或「如果……會怎樣？」開頭。好問題要夠具體，例如「為什麼校園裡的老樹一棵棵消失？」', req:true, check:'question'}
+  ]},
+ {id:'s2', no:'02', nav:'02 策展提案', title:'我的策展提案｜命名、觀眾與理念',
+  lead:'策展不是把作品排整齊，而是透過選擇與安排，讓觀眾理解一個觀點。',
+  fields:[
+   {id:'title', type:'text', label:'展覽主標題', req:true, max:20},
+   {id:'subtitle', type:'text', label:'展覽副標題（可選）', hint:'主標吸引人，副標說清楚。例：「消失的影子——校園裡那些被砍掉的樹」', max:30},
+   {id:'audience', type:'checks', label:'我想邀請誰來看？', options:['同學','家人','老師','所有人'], other:true, req:true},
+   {id:'statement', type:'textarea', label:'策展理念（展覽前言）', hint:'依三段寫：① 我看見了什麼？② 我想問什麼？③ 這檔展覽帶你怎麼看？這段文字會放在 VR 展覽入口的資訊點，觀眾一進來就看到。', req:true, max:200, min:60, rows:6}
+  ]},
+ {id:'s3', no:'03', nav:'03 作品選擇', title:'作品選擇｜每一件作品為什麼要出現？',
+  lead:'先規劃 3 件核心作品；可再加選至 5 件。可沿用 L3 藝術杯墊或提出新的創作。答不出「它和核心問題有什麼關係」的作品，這次就不展。',
+  fields:[
+   {id:'works', type:'group', label:'作品', count:5, min:3, fields:[
+     {id:'name', type:'text', label:'作品名稱／形式', req:true},
+     {id:'media', type:'text', label:'媒材', req:true},
+     {id:'rel', type:'textarea', label:'它與展覽主題的關係（想表達什麼）', req:true, rows:2},
+     {id:'room', type:'text', label:'放在哪個展間', hint:'例：展間 2'},
+     {id:'card', type:'textarea', label:'作品說明卡（放進 Kuula 資訊點）', hint:'在 VR 眼鏡裡閱讀不易，請控制在 80 字內：看點＋故事＋一個給觀眾的問題。', max:80, rows:3},
+     {id:'img', type:'image', label:'作品照片', hint:'正面拍攝、光線均勻、裁掉背景。'}
+   ]},
+   {id:'keep', type:'textarea', label:'如果只能留下其中一件，我最想保留哪一件？為什麼？', req:true, rows:2},
+   {id:'credit', type:'info', html:'<div class="note warm">引用他人作品要標示作者與來源；AI 生成的作品也要清楚說明製作方式。</div>'}
+  ]},
+ {id:'s4', no:'04', nav:'04 展場規劃', title:'展場規劃｜我要如何帶觀眾看展？',
+  lead:'把展覽分成 2～4 個展間，觀眾會依序「傳送」過去。展間的順序，就是你的故事順序。',
+  fields:[
+   {id:'rooms', type:'group', label:'展間', count:4, min:2, fields:[
+     {id:'name', type:'text', label:'展間名稱', req:true},
+     {id:'story', type:'text', label:'這個展間講故事的哪一段', hint:'展間 1 通常是邀請（標題＋策展理念），最後一間是收尾（留給觀眾的問題）。', req:true},
+     {id:'mood', type:'text', label:'想要的氛圍（3 個形容詞）', req:true},
+     {id:'works', type:'text', label:'放哪幾件作品', hint:'寫作品名稱'}
+   ]},
+   {id:'sketch', type:'image', label:'展場草圖', hint:'在紙上畫鳥瞰平面圖或透視草圖，標上入口、3 件展品、主要觀看位置、觀看順序及燈光／色彩，再拍照上傳。', req:true},
+   {id:'first', type:'text', label:'觀眾進來第一眼，我想讓他看到', req:true},
+   {id:'firstWhy', type:'textarea', label:'原因', req:true, rows:2}
+  ]},
+ {id:'s5', no:'05', nav:'05 AI×360° 實作', title:'AI × 360° VR 實作｜把想法轉為可觀看的展覽',
+  lead:'先用文字描述自己的空間，再請 AI 協助生成；不要讓 AI 自行替你決定展覽主題。',
+  fields:[
+   {id:'spaceType', type:'radio', label:'我選擇的空間', options:['AI 生成虛擬美術館','360 相機拍攝真實空間','兩者結合'], req:true},
+   {id:'promptHelp', type:'info', html:'<div class="note">360 圖是一張寬高比 <b>2:1</b> 的全景圖，像把球面攤平的世界地圖。建議用 <a href="https://skybox.blockadelabs.com" target="_blank" rel="noopener">Skybox AI</a> 生成，或依老師指定的 AI 工具。</div>'},
+   {id:'pb', type:'prompt', label:'提示詞產生器', hint:'依序填入空間設定，下方會組成提示詞。一定要「留白展牆」，作品才有地方掛；AI 生成的文字常是亂碼，所以加上 no text。'},
+   {id:'log', type:'group', label:'生成紀錄', count:3, min:1, fields:[
+     {id:'problem', type:'text', label:'這一版的問題是什麼？', req:true},
+     {id:'fix', type:'text', label:'我怎麼改提示詞？'}
+   ]},
+   {id:'pano', type:'image', label:'最終版 360 展間圖（主展間）', hint:'上傳後會自動檢查比例是否為 2:1。', pano:true, req:true},
+   {id:'pano2', type:'image', label:'其他展間 360 圖（可選）', pano:true},
+   {id:'check', type:'checks', label:'上傳 Kuula 前，自我檢查', col:true, req:'all', options:[
+     '全景比例 2:1；測試尺寸 4096×2048',
+     '左右接縫、地板與天花板合理',
+     '人物／物件沒有明顯重複或變形',
+     '沒有亂碼文字、商標或真實人物的臉',
+     '有留白展牆可以放作品',
+     '展品位置、說明與觀眾視線一致']},
+   {id:'kuula', type:'url', label:'Kuula 展覽網址', hint:'在 Kuula 加入：展間連結熱點、作品資訊卡、入口的展覽標題與策展理念，並開啟 VR 模式測試。', req:true, check:'kuula'},
+   {id:'qr', type:'image', label:'展覽 QR Code', hint:'截圖上傳，海報也會用到。'},
+   {id:'aiPart', type:'textarea', label:'我使用 AI 協助的部分', req:true, rows:2},
+   {id:'myPart', type:'textarea', label:'我自己做的關鍵決定', req:true, rows:2}
+  ]},
+ {id:'s6', no:'06', nav:'06 展覽海報', title:'展覽海報｜讓人想走進你的展覽',
+  lead:'海報是必做項目，周邊商品為加分選做。兩者都要和展覽使用同一套視覺語言。',
+  fields:[
+   {id:'colors', type:'colors', label:'展覽主色（可從 360 展間圖中挑色）', count:3},
+   {id:'font', type:'text', label:'標題字體風格', hint:'例：手寫、黑體粗字、明體細字', req:true},
+   {id:'kv', type:'text', label:'主視覺圖像用哪件作品或哪個展間畫面？', req:true},
+   {id:'slogan', type:'text', label:'一句宣傳標語', max:15, req:true},
+   {id:'posterCheck', type:'checks', label:'海報必備元素（文字請自己排版，不要讓 AI 生成文字）', col:true, req:'all', options:[
+     '展覽主標題／副標題','主視覺圖像','展期與觀展方式（掃 QR Code，戴上 VR 眼鏡入場）','Kuula 展覽 QR Code','策展人姓名','宣傳標語或一句邀請']},
+   {id:'poster', type:'image', label:'展覽海報成品', req:true},
+   {id:'merch', type:'group', label:'周邊商品（加分選做）', count:2, min:0, fields:[
+     {id:'item', type:'text', label:'品項', hint:'明信片、貼紙、書籤、帆布袋、徽章、杯墊……'},
+     {id:'why', type:'textarea', label:'和展覽主題的關係？誰會在什麼場合用？', rows:2},
+     {id:'img', type:'image', label:'設計圖或模型圖'}
+   ]}
+  ]},
+ {id:'s7', no:'07', nav:'07 開幕與反思', title:'展覽開幕｜觀眾回饋與我的反思',
+  lead:'請邀請至少 1 位同學戴上 VR 眼鏡觀看，記下對方的感受，再判斷是否達成自己的策展目的。',
+  fields:[
+   {id:'safety', type:'info', html:'<div class="note warm"><b>VR 觀看安全：</b>坐在可旋轉的椅子上觀看；身旁要有同學看護；一感到頭暈或不舒服就立即摘下。</div>'},
+   {id:'viewer', type:'text', label:'觀看的同學', req:true},
+   {id:'fbSay', type:'text', label:'同學覺得這檔展覽在說什麼？（請他用一句話說）', req:true},
+   {id:'fbFeel', type:'textarea', label:'同學看到我的展覽後，最有感覺的是', req:true, rows:2},
+   {id:'fbLost', type:'text', label:'哪裡迷路或看不懂？'},
+   {id:'match', type:'textarea', label:'同學說的「展覽在說什麼」和我的策展理念一致嗎？不一致的話，是哪裡讓觀眾走向了別的方向？', req:true, rows:3},
+   {id:'revise', type:'textarea', label:'如果能再修改一次，我會調整', hint:'請寫出具體作品、配置或說明的修改。', req:true, rows:3},
+   {id:'diff', type:'textarea', label:'這次我發現「策展」和「單純把作品放出來」最大的不同是', req:true, rows:3},
+   {id:'self', type:'rubric', label:'自我評量：每個向度點選一格'}
+  ]},
+ {id:'report', no:'', nav:'學習成果', title:'學習成果'}
+];
+const RUBRIC = [
+ ['策展理念','主題具體，理念清楚且有個人觀點','主題明確，理念可理解','主題寬泛，理念模糊','缺少主題或理念'],
+ ['選件與說明','每件作品都緊扣主題，說明引導觀看','多數作品與主題相關，有說明','作品與主題關係不明','作品雜亂無說明'],
+ ['虛擬展覽（必做）','展間氛圍與作品呼應，動線對應故事','展間完整，動線順暢','展間有明顯瑕疵或動線不清','無法正常觀看'],
+ ['AI 使用與修正','提示詞有意圖，完整紀錄修正過程並說明自己的決定','有紀錄修正過程','只用第一版結果','未說明 AI 使用'],
+ ['展覽海報（必做）','視覺與展覽一致，資訊完整，吸引人入場','資訊完整，視覺大致一致','缺少重要資訊','未完成'],
+ ['回饋與反思','依觀眾回饋提出具體修正，反思深入','有回饋與反思','反思空泛','未完成']
+];
+const LEVELS=['4 優秀','3 良好','2 尚可','1 待加強'];
+const PROMPT_PARTS=[
+ ['space','空間類型','例：老溫室改建的室內藝廊'],
+ ['material','材質與光線','例：木地板、晨光穿過玻璃、牆上有樹影'],
+ ['style','色彩與風格','例：低彩度綠色與暖棕、水彩風格'],
+ ['walls','留白展牆','例：三面大的空白白牆用來掛作品'],
+ ['avoid','不要出現的東西','例：沒有人、沒有文字、沒有商標']
+];
+
+/* ---------- 儲存 ---------- */
+const KEY='vrcurate-l4-v1';
+let data={};
+let mem={};
+const store={
+  get(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return mem.d||{}}},
+  set(d){try{localStorage.setItem(KEY,JSON.stringify(d));return true}catch(e){mem.d=d;return false}}
+};
+let dbp=null;
+function db(){
+  if(dbp) return dbp;
+  dbp=new Promise((res,rej)=>{
+    try{const r=indexedDB.open('vrcurate-files',1);
+      r.onupgradeneeded=()=>r.result.createObjectStore('f');
+      r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error);
+    }catch(e){rej(e)}
+  });
+  return dbp;
+}
+const memFiles={};
+async function fput(k,v){try{const d=await db();await new Promise((res,rej)=>{const t=d.transaction('f','readwrite');t.objectStore('f').put(v,k);t.oncomplete=res;t.onerror=()=>rej(t.error)});}catch(e){memFiles[k]=v}}
+async function fget(k){try{const d=await db();return await new Promise((res,rej)=>{const r=d.transaction('f').objectStore('f').get(k);r.onsuccess=()=>res(r.result||memFiles[k]);r.onerror=()=>res(memFiles[k])})}catch(e){return memFiles[k]}}
+async function fdel(k){delete memFiles[k];try{const d=await db();await new Promise(res=>{const t=d.transaction('f','readwrite');t.objectStore('f').delete(k);t.oncomplete=res;t.onerror=res})}catch(e){}}
+async function fall(){try{const d=await db();return await new Promise(res=>{const out={};const r=d.transaction('f').objectStore('f').openCursor();r.onsuccess=()=>{const c=r.result;if(c){out[c.key]=c.value;c.continue()}else res(Object.assign(out,memFiles))};r.onerror=()=>res({...memFiles})})}catch(e){return {...memFiles}}}
+async function fclear(){for(const k in memFiles)delete memFiles[k];try{const d=await db();await new Promise(res=>{const t=d.transaction('f','readwrite');t.objectStore('f').clear();t.oncomplete=res;t.onerror=res})}catch(e){}}
+
+let saveTimer=null;
+function save(){
+  data._t=Date.now();
+  const ok=store.set(data);
+  document.getElementById('saveState').textContent= ok?'已自動儲存 '+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}):'暫存（關閉後會遺失）';
+  updateProgress();
+}
+function saveSoon(){save()}
+window.addEventListener('pagehide',()=>store.set(data));
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')store.set(data)});
+
+/* ---------- 工具 ---------- */
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+function val(k){return data[k]}
+function setv(k,v){data[k]=v;saveSoon()}
+
+/* ---------- 渲染 ---------- */
+const app=document.getElementById('app');
+function renderNav(){
+  const nav=document.getElementById('stepNav');
+  nav.innerHTML=SECTIONS.map(s=>`<button data-go="${s.id}" id="nav-${s.id}">${esc(s.nav)}</button>`).join('');
+  nav.onclick=e=>{const b=e.target.closest('button');if(b)go(b.dataset.go)};
+}
+function fieldHTML(f,key){
+  const req=f.req?'<span class="req">必填</span>':'';
+  const hint=f.hint?`<div class="hint">${esc(f.hint)}</div>`:'';
+  const v=val(key);
+  switch(f.type){
+   case 'info': return f.html;
+   case 'text': case 'url':
+     return `<div class="field"><label for="f-${key}">${esc(f.label)}${req}</label>${hint}<input id="f-${key}" type="${f.type==='url'?'url':'text'}" data-k="${key}" value="${esc(v||'')}" ${f.type==='url'?'placeholder="https://kuula.co/..." inputmode="url"':''}>${f.max?`<div class="count" data-count="${key}" data-max="${f.max}"></div>`:''}<div class="fb" data-fb="${key}"></div></div>`;
+   case 'textarea':
+     return `<div class="field"><label for="f-${key}">${esc(f.label)}${req}</label>${hint}<textarea id="f-${key}" data-k="${key}" rows="${f.rows||4}">${esc(v||'')}</textarea>${f.max?`<div class="count" data-count="${key}" data-max="${f.max}" data-min="${f.min||0}"></div>`:''}</div>`;
+   case 'checks': case 'radio': {
+     const arr=Array.isArray(v)?v:(v?[v]:[]);
+     const t=f.type==='radio'?'radio':'checkbox';
+     const items=f.options.map((o,i)=>`<label><input type="${t}" name="${key}" data-opt="${key}" value="${esc(o)}" ${arr.includes(o)?'checked':''}> ${esc(o)}</label>`).join('');
+     const other=f.other?`<label>其他：<input type="text" data-k="${key}__other" value="${esc(val(key+'__other')||'')}" style="border:none;border-bottom:1px solid var(--line);border-radius:0;padding:2px;width:9em"></label>`:'';
+     return `<div class="field"><div class="lbl">${esc(f.label)}${req}</div>${hint}<div class="opts ${f.col?'col':''}">${items}${other}</div><div class="fb" data-fb="${key}"></div></div>`;
+   }
+   case 'image':
+     return `<div class="field"><div class="lbl">${esc(f.label)}${req}</div>${hint}<div class="drop" data-img="${key}" data-pano="${f.pano?1:''}"><div class="pv"></div><input type="file" accept="image/*" id="file-${key}"><div class="btns" style="justify-content:center;margin:6px 0"><label class="btn small" for="file-${key}">選擇圖片</label><button class="btn small ghost" data-rm="${key}" hidden>移除</button></div><div class="meta">JPG／PNG，10 MB 以內。圖片只存在這台裝置。</div></div><div class="fb" data-fb="${key}"></div></div>`;
+   case 'group': {
+     let h=`<div class="field"><div class="lbl">${esc(f.label)}${f.min?`<span class="req">至少 ${f.min} 個</span>`:''}</div>`;
+     for(let i=1;i<=f.count;i++){
+       const opt=i>f.min;
+       h+=`<div class="group"><h4>${esc(f.label)} ${i}${opt?'<em>可選</em>':''}</h4>`;
+       h+=f.fields.map(sf=>fieldHTML({...sf,req:sf.req&&!opt},`${key}.${i}.${sf.id}`)).join('');
+       h+='</div>';
+     }
+     return h+'</div>';
+   }
+   case 'prompt': {
+     const parts=PROMPT_PARTS.map(([id,l,ph])=>`<div class="field"><label for="f-${key}.${id}">${esc(l)}</label><input id="f-${key}.${id}" type="text" data-k="${key}.${id}" placeholder="${esc(ph)}" value="${esc(val(key+'.'+id)||'')}"></div>`).join('');
+     return `<div class="field"><div class="lbl">${esc(f.label)}<span class="req">必填</span></div>${hint}<div class="card" style="margin:8px 0;padding:16px 16px 4px">${parts}
+     <div class="lbl">組成的中文提示詞</div><pre class="prompt" id="promptOut"></pre>
+     <div class="btns"><button class="btn small" data-copy="promptOut">複製中文提示詞</button><button class="btn small ghost" data-copy="transPrompt">複製「請 AI 翻譯」的提問</button><a class="btn small ghost" href="https://skybox.blockadelabs.com" target="_blank" rel="noopener">開啟 Skybox AI</a></div>
+     <pre class="prompt" id="transPrompt" hidden></pre>
+     <div class="hint">英文提示詞效果通常較穩。可把「請 AI 翻譯」的提問貼到老師指定的 AI 工具，再把翻好的英文貼在下面。</div>
+     <div class="field"><label for="f-${key}.en">最後使用的英文提示詞</label><textarea id="f-${key}.en" data-k="${key}.en" rows="3">${esc(val(key+'.en')||'')}</textarea></div>
+     <div class="fb" data-fb="${key}"></div></div></div>`;
+   }
+   case 'colors': {
+     const cs=val(key)||['#1f5f5b','#b4532a','#f6f2ea'];
+     return `<div class="field"><div class="lbl">${esc(f.label)}</div><div class="swatches">${[0,1,2].map(i=>`<label><input type="color" data-color="${key}" data-i="${i}" value="${esc(cs[i]||'#ffffff')}">主色 ${i+1}</label>`).join('')}</div></div>`;
+   }
+   case 'rubric': {
+     const sel=val(key)||{};
+     let h=`<div class="field"><div class="lbl">${esc(f.label)}</div><div class="rub-wrap"><table class="rub"><thead><tr><th>向度</th>${LEVELS.map(l=>`<th>${l}</th>`).join('')}</tr></thead><tbody>`;
+     RUBRIC.forEach((r,ri)=>{h+=`<tr><th>${esc(r[0])}</th>`+[1,2,3,4].map(c=>`<td class="pick"><label><input type="radio" name="rub${ri}" data-rub="${key}" data-r="${ri}" value="${5-c}" ${sel[ri]==5-c?'checked':''}><br>${esc(r[c])}</label></td>`).join('')+'</tr>'});
+     return h+'</tbody></table></div><div class="hint">周邊商品為加分項目，不計入基本規準。</div></div>';
+   }
+  }
+  return '';
+}
+function render(){
+  let h='';
+  // home
+  h+=`<section class="task" id="t-home"><div class="hero"><div class="kicker">美術科｜高三 L4 漫遊美術館</div><h1>我的 VR 虛擬策展</h1><p>把自己的想法變成一場可以戴上 VR 眼鏡走進去的展覽。可使用攝影、繪畫、裝置、AI 圖像或既有作品。</p>
+  <div class="chain"><span>主題</span><b>→</b><span>選件</span><b>→</b><span>空間</span><b>→</b><span>海報</span><b>→</b><span>觀眾</span></div></div>
+  <div class="card"><div class="field"><div class="lbl">基本資料<span class="req">必填</span></div><div class="row2">
+   <div class="field"><label for="f-cls">班級</label><input id="f-cls" type="text" data-k="cls" value="${esc(val('cls')||'')}" placeholder="例：三年 5 班"></div>
+   <div class="field"><label for="f-seat">座號</label><input id="f-seat" type="text" data-k="seat" inputmode="numeric" value="${esc(val('seat')||'')}"></div>
+   <div class="field"><label for="f-name">姓名</label><input id="f-name" type="text" data-k="name" value="${esc(val('name')||'')}"></div></div></div></div>
+  <div class="card"><div class="lbl" style="font-weight:700;margin-bottom:6px">最低完成要求</div>
+   <p style="margin:0 0 6px">① 一場可用 VR 觀看的虛擬藝術展覽（Kuula 網址）<span class="badge must">必做</span><br>② 一張展覽海報<span class="badge must">必做</span><br>③ 展覽周邊商品<span class="badge">加分選做</span></p>
+   <p class="hint" style="margin:8px 0 14px">每完成一段，記得把成果上傳班級 Padlet。</p></div>
+  <div class="note warm"><b>你的資料存在哪裡？</b>回答與圖片只會自動存在「這台裝置的這個瀏覽器」，老師看不到，換平板或清除瀏覽器資料就會不見。請固定用同一台平板，完成後到「學習成果」下載 PDF，再上傳到 Google Classroom 繳交。需要換裝置時，可用「學習成果」頁的「下載備份檔」帶走進度。</div>
+  <div class="btns"><button class="btn" data-go="${firstUndone()}">開始／繼續填寫 →</button></div></section>`;
+  SECTIONS.filter(s=>s.fields).forEach((s,idx,arr)=>{
+    h+=`<section class="task" id="t-${s.id}"><div class="sec-head"><div class="sec-no">${s.no}</div><div><h2>${esc(s.title)}</h2><p>${esc(s.lead)}</p></div></div><div class="card">${s.fields.map(f=>fieldHTML(f,`${s.id}.${f.id}`)).join('')}</div>
+    <div class="pager no-print"><button class="btn ghost" data-go="${idx?arr[idx-1].id:'home'}">← 上一段</button><span class="hint" data-left="${s.id}"></span><button class="btn" data-go="${idx<arr.length-1?arr[idx+1].id:'report'}">下一段 →</button></div></section>`;
+  });
+  h+=`<section class="task" id="t-report"><div class="sec-head no-print"><div><h2>學習成果</h2><p>預覽你的完整學習單。下載 PDF 後上傳 Google Classroom 繳交（網站不會自動交出）。</p></div></div>
+  <div class="card no-print"><div id="missing"></div>
+   <div class="btns"><button class="btn warm" id="btnPrint">下載 PDF／列印</button><button class="btn ghost" id="btnExport">下載備份檔</button><label class="btn ghost" for="impFile">匯入備份檔</label><input type="file" id="impFile" accept=".json,application/json" hidden><button class="btn ghost" id="btnClear">清除全部資料</button></div>
+   <div class="hint">平板上按「下載 PDF／列印」後，在列印畫面選「另存為 PDF」。繳交步驟：① 下載 PDF ② 打開 Google Classroom 本作業 ③ 新增檔案上傳 ④ 按「繳交」。</div></div>
+  <div id="report"></div></section>`;
+  h+='<p class="foot no-print">美術科｜高三 L4 漫遊美術館　教師：曾國正</p>';
+  app.innerHTML=h;
+  bind();
+  $$('[data-img]').forEach(loadImg);
+  updatePrompt(); updateCounts(); runChecks(); updateProgress();
+}
+
+/* ---------- 互動 ---------- */
+function bind(){
+  app.addEventListener('input',e=>{
+    const t=e.target;
+    if(t.dataset.k!==undefined){setv(t.dataset.k,t.value); if(t.dataset.k.startsWith('s5.pb'))updatePrompt(); updateCounts(); runChecks(t.dataset.k)}
+    if(t.dataset.color){const a=val(t.dataset.color)||['#1f5f5b','#b4532a','#f6f2ea'];a[+t.dataset.i]=t.value;setv(t.dataset.color,a)}
+  });
+  app.addEventListener('change',e=>{
+    const t=e.target;
+    if(t.dataset.opt){const k=t.dataset.opt;
+      if(t.type==='radio') setv(k,t.value);
+      else setv(k,$$(`[data-opt="${CSS.escape(k)}"]`).filter(x=>x.checked).map(x=>x.value));
+      runChecks(k)}
+    if(t.dataset.rub){const s=val(t.dataset.rub)||{};s[t.dataset.r]=+t.value;setv(t.dataset.rub,s)}
+    if(t.type==='file'&&t.id.startsWith('file-')) handleFile(t);
+    if(t.id==='impFile') importBackup(t);
+  });
+  app.addEventListener('click',async e=>{
+    const g=e.target.closest('[data-go]'); if(g){go(g.dataset.go);return}
+    const rm=e.target.closest('[data-rm]'); if(rm){await fdel(rm.dataset.rm);delete data['img:'+rm.dataset.rm];save();loadImg($(`[data-img="${CSS.escape(rm.dataset.rm)}"]`));return}
+    const cp=e.target.closest('[data-copy]'); if(cp){copyText($('#'+cp.dataset.copy).textContent,cp);return}
+    if(e.target.id==='btnPrint'){await buildReport();setTimeout(()=>window.print(),300)}
+    if(e.target.id==='btnExport') exportBackup();
+    if(e.target.id==='btnClear'){ if(confirmClear()){ data={};store.set({});await fclear();render();go('home')} }
+  });
+}
+function confirmClear(){return window.confirm('確定要清除這台裝置上的所有回答與圖片嗎？清除後無法復原。')}
+function copyText(txt,btn){
+  const done=()=>{const o=btn.textContent;btn.textContent='已複製 ✓';setTimeout(()=>btn.textContent=o,1500)};
+  if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(txt).then(done,()=>fallbackCopy(txt,done))}else fallbackCopy(txt,done);
+}
+function fallbackCopy(txt,done){const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done()}catch(e){alert('請長按選取文字後手動複製')}ta.remove()}
+
+function updatePrompt(){
+  const out=$('#promptOut'); if(!out) return;
+  const p=PROMPT_PARTS.map(([id])=>(val('s5.pb.'+id)||'').trim()).filter(Boolean);
+  const zh=p.length? '360 度等距柱狀投影全景圖，寬高比 2:1，左右邊緣可無縫接合。'+p.join('，')+'。' : '（在上方填入空間設定，這裡會組成提示詞）';
+  out.textContent=zh;
+  const theme=val('s2.title')?`展覽主題是「${val('s2.title')}」。`:'';
+  $('#transPrompt').textContent=`請把下面這段 360 度展間的描述翻譯成適合 AI 生圖的英文提示詞。${theme}只要翻譯與整理成英文關鍵句，不要增加我沒寫的物件或主題，並保留 "360 equirectangular panorama, 2:1"、"empty white walls for artworks"、"no people, no text, no logos"。\n\n${zh}`;
+}
+function updateCounts(){
+  $$('[data-count]').forEach(el=>{
+    const v=(val(el.dataset.count)||'').replace(/\s/g,''); const n=[...v].length, max=+el.dataset.max, min=+(el.dataset.min||0);
+    el.textContent=`${n} / ${max} 字`+(min&&n<min?`（建議至少 ${min} 字）`:'');
+    el.classList.toggle('over',n>max);
+  });
+}
+function fb(k,cls,msg){const el=$(`[data-fb="${CSS.escape(k)}"]`);if(!el)return;el.className='fb'+(msg?' show '+cls:'');el.textContent=msg||''}
+function runChecks(k){
+  const q=(val('s1.question')||'').trim();
+  if(!k||k==='s1.question'){ if(!q) fb('s1.question'); else if(!/[?？]$/.test(q)) fb('s1.question','tip','核心問題記得用問句，結尾加上「？」'); else if([...q].length<8) fb('s1.question','tip','再具體一點：是「誰」、在「哪裡」、發生「什麼」？'); else fb('s1.question','good','很好，這是一個可以帶著觀眾思考的問題。') }
+  const ku=(val('s5.kuula')||'').trim();
+  if(!k||k==='s5.kuula'){ if(!ku) fb('s5.kuula'); else if(!/^https?:\/\/([\w-]+\.)?kuula\.co\//i.test(ku)) fb('s5.kuula','tip','網址看起來不是 Kuula 的分享連結（應為 https://kuula.co/… 開頭）。'); else fb('s5.kuula','good','已填入 Kuula 網址。記得用 VR 模式實際測試一次。') }
+  if(!k||k.startsWith('s5.pb')){ const av=(val('s5.pb.avoid')||'')+(val('s5.pb.en')||''); const w=val('s5.pb.walls');
+    if(!val('s5.pb.space')) fb('s5.pb'); else if(!w) fb('s5.pb','tip','還沒寫「留白展牆」，生成後作品可能沒地方掛。'); else if(!/文字|text/i.test(av)) fb('s5.pb','tip','建議在「不要出現的東西」加上「沒有文字」，避免亂碼。'); else fb('s5.pb','good','提示詞結構完整。生成後別忘了在下方記錄每一版的問題。') }
+  if(!k||k.startsWith('s5.check')){ const c=val('s5.check')||[]; if(c.length===6) fb('s5.check','good','全部檢查通過，可以上傳 Kuula 了。'); else fb('s5.check') }
+}
+
+/* ---------- 圖片 ---------- */
+function handleFile(input){
+  const key=input.id.slice(5); const f=input.files[0]; input.value='';
+  if(!f) return;
+  if(!/^image\/(jpeg|png|webp|gif)$/.test(f.type)){fb(key,'tip','請選擇 JPG 或 PNG 圖片。');return}
+  if(f.size>10*1024*1024){fb(key,'tip','檔案超過 10 MB，請先縮小再上傳。');return}
+  const pano=$(`[data-img="${CSS.escape(key)}"]`).dataset.pano;
+  const url=URL.createObjectURL(f); const im=new Image();
+  im.onload=async()=>{
+    const ow=im.naturalWidth, oh=im.naturalHeight, maxS=pano?2048:1400;
+    const sc=Math.min(1,maxS/Math.max(ow,oh)); const c=document.createElement('canvas');
+    c.width=Math.round(ow*sc); c.height=Math.round(oh*sc);
+    const ctx=c.getContext('2d'); ctx.fillStyle='#fff'; ctx.fillRect(0,0,c.width,c.height); ctx.drawImage(im,0,0,c.width,c.height);
+    const du=c.toDataURL('image/jpeg',0.85); URL.revokeObjectURL(url);
+    await fput(key,{du,name:f.name,ow,oh});
+    data['img:'+key]=1; save(); loadImg($(`[data-img="${CSS.escape(key)}"]`));
+  };
+  im.onerror=()=>{fb(key,'tip','這張圖片無法讀取，請換一張。');URL.revokeObjectURL(url)};
+  im.src=url;
+}
+async function loadImg(box){
+  if(!box) return; const key=box.dataset.img; const v=await fget(key);
+  $('.pv',box).innerHTML=v?`<img src="${v.du}" alt="${esc(v.name)}"><div class="meta">${esc(v.name)}｜原始尺寸 ${v.ow}×${v.oh}</div>`:'';
+  $(`[data-rm]`,box).hidden=!v; $('label.btn',box).textContent=v?'替換圖片':'選擇圖片';
+  if(box.dataset.pano){
+    if(!v) fb(key); else { const r=v.ow/v.oh;
+      if(Math.abs(r-2)>0.03) fb(key,'tip',`比例是 ${r.toFixed(2)}:1，不是 2:1，放進 Kuula 會變形。請重新生成或裁切。`);
+      else if(v.ow<4096) fb(key,'tip',`比例正確（2:1）。寬度 ${v.ow}px，建議至少 4096×2048，VR 裡才清楚。`);
+      else fb(key,'good','比例 2:1、尺寸足夠，可以上傳 Kuula。'); }
+  }
+}
+
+/* ---------- 進度 ---------- */
+function reqKeys(s){
+  const out=[];
+  s.fields.forEach(f=>{
+    const k=`${s.id}.${f.id}`;
+    if(f.type==='group'){for(let i=1;i<=f.min;i++)f.fields.forEach(sf=>{if(sf.req)out.push([`${k}.${i}.${sf.id}`,sf])})}
+    else if(f.type==='prompt') out.push([k+'.space',{type:'text'}],[k+'.walls',{type:'text'}]);
+    else if(f.req) out.push([k,f]);
+  });
+  return out;
+}
+function filled(k,f){
+  if(f.type==='image') return !!data['img:'+k];
+  const v=data[k];
+  if(f.type==='checks'){const a=Array.isArray(v)?v:[]; if(f.req==='all') return a.length===f.options.length; return a.length>0||!!(data[k+'__other']||'').trim()}
+  return !!(v&&String(v).trim());
+}
+function secStatus(s){const r=reqKeys(s);const d=r.filter(([k,f])=>filled(k,f)).length;return {d,t:r.length,miss:r.filter(([k,f])=>!filled(k,f))}}
+function homeDone(){return ['cls','name','seat'].every(k=>(data[k]||'').trim())}
+function firstUndone(){if(!homeDone())return 's1';const s=SECTIONS.find(s=>s.fields&&secStatus(s).d<secStatus(s).t);return s?s.id:'report'}
+function updateProgress(){
+  let d=0,t=0;
+  SECTIONS.filter(s=>s.fields).forEach(s=>{const st=secStatus(s);d+=st.d;t+=st.t;
+    const nb=$('#nav-'+s.id); if(nb) nb.classList.toggle('done',st.d===st.t);
+    const lf=$(`[data-left="${s.id}"]`); if(lf) lf.textContent=st.d===st.t?'本段必填已完成 ✓':`本段必填 ${st.d}/${st.t}`;});
+  const hb=$('#nav-home'); if(hb) hb.classList.toggle('done',homeDone());
+  $('#progBar').style.width=(t?d/t*100:0)+'%';
+}
+let current='home';
+function go(id){
+  current=id; $$('section.task').forEach(s=>s.classList.toggle('on',s.id==='t-'+id));
+  $$('#stepNav button').forEach(b=>b.classList.toggle('on',b.dataset.go===id));
+  const nb=$('#nav-'+id); if(nb) nb.scrollIntoView({inline:'center',block:'nearest'});
+  window.scrollTo(0,0);
+  if(id==='report') buildReport();
+  try{history.replaceState(null,'','#'+id)}catch(e){}
+}
+
+/* ---------- 學習成果 ---------- */
+function dd(v){v=(v??'').toString().trim();return v?`<dd>${esc(v)}</dd>`:'<dd class="empty">（未填寫）</dd>'}
+async function buildReport(){
+  const files=await fall();
+  const img=(k,cap)=>files[k]?`<figure><img src="${files[k].du}" alt="${esc(cap)}"><figcaption>${esc(cap)}</figcaption></figure>`:'';
+  const miss=[];
+  if(!homeDone()) miss.push('開始：基本資料');
+  SECTIONS.filter(s=>s.fields).forEach(s=>{const st=secStatus(s); if(st.d<st.t) miss.push(`${s.nav}：還有 ${st.t-st.d} 項必填`)});
+  $('#missing').innerHTML=miss.length?`<div class="note warm"><b>尚未完成：</b>${miss.map(esc).join('、')}。仍可先下載 PDF 查看。</div>`:`<div class="note">必填項目全部完成！下載 PDF 後上傳 Classroom 繳交。</div>`;
+  let h=`<div class="page"><h1>漫遊美術館｜我的 VR 虛擬策展</h1><div class="meta">美術科｜高三 L4　班級：${esc(data.cls||'')}　座號：${esc(data.seat||'')}　姓名：${esc(data.name||'')}　輸出日期：${new Date().toLocaleDateString('zh-TW')}</div>`;
+  h+=`<h2>01 從生活出發</h2><dl><dt>最在意的 3 件事／心情</dt>${dd(data['s1.care3'])}<dt>為什麼做成展覽</dt>${dd(data['s1.why'])}<dt>關鍵詞</dt>${dd(data['s1.keyword'])}<dt>核心問題</dt>${dd(data['s1.question'])}</dl>`;
+  const aud=[...(data['s2.audience']||[])]; if((data['s2.audience__other']||'').trim()) aud.push(data['s2.audience__other']);
+  h+=`<h2>02 策展提案</h2><dl><dt>展覽標題</dt>${dd([data['s2.title'],data['s2.subtitle']].filter(Boolean).join('——'))}<dt>邀請的觀眾</dt>${dd(aud.join('、'))}<dt>策展理念</dt>${dd(data['s2.statement'])}</dl>`;
+  h+=`<h2>03 作品選擇</h2><table><tr><th>#</th><th>作品／媒材</th><th>與主題的關係</th><th>展間</th><th>說明卡</th></tr>`;
+  let wimgs='';
+  for(let i=1;i<=5;i++){const p=`s3.works.${i}.`; if(!data[p+'name']&&!data[p+'rel']&&!files[p+'img']) continue;
+    h+=`<tr><td>${i}</td><td>${esc(data[p+'name']||'')}<br>${esc(data[p+'media']||'')}</td><td>${esc(data[p+'rel']||'')}</td><td>${esc(data[p+'room']||'')}</td><td>${esc(data[p+'card']||'')}</td></tr>`;
+    wimgs+=img(p+'img',`作品 ${i}：${data[p+'name']||''}`);}
+  h+=`</table>${wimgs?`<div class="imgs">${wimgs}</div>`:''}<dl><dt>只能留一件，我會保留</dt>${dd(data['s3.keep'])}</dl>`;
+  h+=`<h2>04 展場規劃</h2><table><tr><th>展間</th><th>名稱</th><th>故事段落</th><th>氛圍</th><th>作品</th></tr>`;
+  for(let i=1;i<=4;i++){const p=`s4.rooms.${i}.`; if(!data[p+'name']&&!data[p+'story']) continue; h+=`<tr><td>${i}</td><td>${esc(data[p+'name']||'')}</td><td>${esc(data[p+'story']||'')}</td><td>${esc(data[p+'mood']||'')}</td><td>${esc(data[p+'works']||'')}</td></tr>`}
+  h+=`</table>${img('s4.sketch','展場草圖')}<dl><dt>觀眾第一眼看到</dt>${dd(data['s4.first'])}<dt>原因</dt>${dd(data['s4.firstWhy'])}</dl>`;
+  const pz=$('#promptOut')?$('#promptOut').textContent:'';
+  h+=`<h2>05 AI × 360° VR 實作</h2><dl><dt>空間選擇</dt>${dd(data['s5.spaceType'])}<dt>中文提示詞</dt>${dd(val('s5.pb.space')?pz:'')}<dt>英文提示詞</dt>${dd(data['s5.pb.en'])}<dt>生成紀錄</dt>${dd([1,2,3].filter(i=>data[`s5.log.${i}.problem`]).map(i=>`v${i}：${data[`s5.log.${i}.problem`]} → ${data[`s5.log.${i}.fix`]||''}`).join('\n'))}</dl>
+  <div class="imgs">${img('s5.pano','主展間 360 圖')}${img('s5.pano2','其他展間 360 圖')}</div>
+  <dl><dt>自我檢查</dt>${dd((data['s5.check']||[]).map(x=>'☑ '+x).join('\n'))}<dt>Kuula 展覽網址</dt>${dd(data['s5.kuula'])}</dl>${img('s5.qr','展覽 QR Code')}
+  <dl><dt>我使用 AI 協助的部分</dt>${dd(data['s5.aiPart'])}<dt>我自己做的關鍵決定</dt>${dd(data['s5.myPart'])}</dl>`;
+  const cs=data['s6.colors']||[];
+  h+=`<h2>06 展覽海報</h2><dl><dt>主色</dt><dd>${cs.length?cs.map(c=>`<span class="sw" style="background:${esc(c)}"></span>${esc(c)}　`).join(''):'<span style="color:#999">（未設定）</span>'}</dd><dt>字體風格／主視覺／標語</dt>${dd([data['s6.font'],data['s6.kv'],data['s6.slogan']].filter(Boolean).join('｜'))}<dt>必備元素</dt>${dd((data['s6.posterCheck']||[]).map(x=>'☑ '+x).join('\n'))}</dl>${img('s6.poster','展覽海報')}`;
+  let mh='';for(let i=1;i<=2;i++){const p=`s6.merch.${i}.`; if(!data[p+'item']&&!files[p+'img']) continue; mh+=`<dt>周邊 ${i}：${esc(data[p+'item']||'')}</dt>${dd(data[p+'why'])}${img(p+'img','周邊 '+i)}`}
+  if(mh) h+=`<dl>${mh}</dl>`;
+  h+=`<h2>07 展覽開幕與反思</h2><dl><dt>觀看的同學</dt>${dd(data['s7.viewer'])}<dt>同學覺得展覽在說什麼</dt>${dd(data['s7.fbSay'])}<dt>最有感覺的是</dt>${dd(data['s7.fbFeel'])}<dt>迷路或看不懂之處</dt>${dd(data['s7.fbLost'])}<dt>與我的策展理念是否一致</dt>${dd(data['s7.match'])}<dt>再修改一次，我會調整</dt>${dd(data['s7.revise'])}<dt>策展與單純展出最大的不同</dt>${dd(data['s7.diff'])}</dl>`;
+  const sel=data['s7.self']||{};
+  h+=`<table style="margin-top:6pt"><tr><th>自評向度</th><th>等級</th></tr>${RUBRIC.map((r,i)=>`<tr><td>${esc(r[0])}</td><td>${sel[i]?LEVELS[4-sel[i]]+'：'+esc(r[5-sel[i]]):'（未自評）'}</td></tr>`).join('')}</table></div>`;
+  $('#report').innerHTML=h;
+}
+
+/* ---------- 備份 ---------- */
+async function exportBackup(){
+  const files=await fall();
+  const blob=new Blob([JSON.stringify({v:1,data,files})],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`VR策展學習單_${data.seat||''}${data.name||''}.json`; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+}
+function importBackup(input){
+  const f=input.files[0]; input.value=''; if(!f) return;
+  const r=new FileReader();
+  r.onload=async()=>{try{const o=JSON.parse(r.result); if(!o||!o.data) throw 0;
+    data=o.data; store.set(data); await fclear(); for(const k in (o.files||{})) await fput(k,o.files[k]);
+    render(); go('report'); alert('已匯入備份。')}catch(e){alert('這不是有效的備份檔。')}};
+  r.readAsText(f);
+}
+
+/* ---------- 啟動 ---------- */
+data=store.get();
+renderNav(); render();
+const start=(location.hash||'').slice(1);
+go(SECTIONS.some(s=>s.id===start)?start:'home');
+if(data._t) document.getElementById('saveState').textContent='已載入上次的進度';
+</script>
+</body>
+</html>
