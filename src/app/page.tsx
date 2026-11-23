@@ -55,7 +55,7 @@ export default function Home() {
                 208 沉浸式探索教室
               </Link>
             )}
-            <span className="rounded bg-amber-100 px-2 py-1 text-xs text-amber-800">原型版：資料只存在這台電腦的瀏覽器</span>
+            <span className="rounded bg-amber-100 px-2 py-1 text-xs text-amber-800">編輯中的專案存在這台電腦；按「發布到網路」才能分享</span>
           </div>
         </div>
       </header>
@@ -129,6 +129,7 @@ export default function Home() {
                       <div className="flex items-center gap-2">
                         <span className="rounded bg-slate-100 px-2 py-0.5 text-xs">{PROJECT_TYPE_LABEL[p.type]}</span>
                         <span className="text-xs text-slate-500">{p.scenes.length} 個場景</span>
+                        {p.publishedId && <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs text-emerald-800">已發布</span>}
                       </div>
                       <h3 className="font-semibold">{p.title}</h3>
                       {p.author && <p className="text-sm text-slate-500">{p.author}</p>}

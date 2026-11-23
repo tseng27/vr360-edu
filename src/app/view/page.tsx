@@ -1,42 +1,115 @@
 "use client";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import PanoViewer from "@/components/PanoViewer";
 import Thumb from "@/components/Thumb";
-import { blobUrl, getProject } from "@/lib/store";
-import { PROJECT_TYPE_LABEL, type Hotspot, type Project } from "@/lib/types";
+import { blobUrl, getProject, setRemoteMedia } from "@/lib/store";
+import { cloudStatus, loadPublished, publicMediaUrl } from "@/lib/publish";
+import { HOTSPOT_ICON, PROJECT_TYPE_LABEL, type Hotspot, type Project } from "@/lib/types";
+import VRLauncher from "@/features/vr/VRLauncher";
+import type { VRCard, VRSceneInput } from "@/features/vr/engine";
+
+async function loadProject(id: string, pub: string): Promise<Project | null> {
+  if (pub) {
+    if (cloudStatus !== "ready") throw new Error("這個網站還沒有設定雲端，無法開啟已發布的導覽。");
+    const d = await loadPublished(pub);
+    if (!d) return null;
+    setRemoteMedia(Object.fromEntries(Object.entries(d.media).map(([k, path]) => [k, publicMediaUrl(path)])));
+    return d.project;
+  }
+  return (await getProject(id)) ?? null;
+}
 
 function ViewPageInner() {
-  const id = useSearchParams().get("id") ?? "";
+  const params = useSearchParams();
+  const id = params.get("id") ?? "";
+  const pub = params.get("pub") ?? "";
   const [project, setProject] = useState<Project | null | undefined>(undefined);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [sceneId, setSceneId] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string>();
   const [card, setCard] = useState<Hotspot | null>(null);
+  const [cardImage, setCardImage] = useState<string>();
   const [intro, setIntro] = useState(true);
   const [stripOpen, setStripOpen] = useState(true);
+  // VR 模式時卸載一般播放器，手機上不要同時佔兩份 GPU 記憶體
+  const [vrActive, setVrActive] = useState(false);
 
   useEffect(() => {
-    getProject(id).then((p) => {
-      setProject(p ?? null);
-      if (p) setSceneId(p.startSceneId ?? p.scenes[0]?.id ?? null);
-    });
-  }, [id]);
+    loadProject(id, pub)
+      .then((p) => {
+        setProject(p);
+        if (p) setSceneId(p.startSceneId ?? p.scenes[0]?.id ?? null);
+      })
+      .catch((e: Error) => {
+        setLoadError(e.message);
+        setProject(null);
+      });
+  }, [id, pub]);
 
   const scene = project?.scenes.find((s) => s.id === sceneId);
+  const sceneIndex = project?.scenes.findIndex((s) => s.id === sceneId) ?? -1;
 
   useEffect(() => {
     if (scene) blobUrl(scene.imageKey).then(setImageUrl);
   }, [scene?.imageKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    setCardImage(undefined);
+    if (card?.imageKey) blobUrl(card.imageKey).then(setCardImage);
+  }, [card]);
+
+  const visibleHotspots = useMemo(
+    () => scene?.hotspots.filter((h) => h.type !== "scene" || h.targetSceneId) ?? [],
+    [scene],
+  );
+
+  // 給 VR 模式用的場景資料
+  const vrScene = useMemo<VRSceneInput | null>(
+    () =>
+      scene && imageUrl && project
+        ? {
+            imageUrl,
+            name: scene.name,
+            index: sceneIndex,
+            total: project.scenes.length,
+            initialYaw: scene.initialView.yaw,
+            hotspots: visibleHotspots.map((h) => ({ id: h.id, type: h.type, yaw: h.yaw, pitch: h.pitch, title: h.title, icon: HOTSPOT_ICON[h.type] })),
+          }
+        : null,
+    [scene, imageUrl, project, sceneIndex, visibleHotspots],
+  );
+  const vrCard = useMemo<VRCard | null>(
+    () =>
+      card
+        ? {
+            kicker: card.type === "artwork" ? "藝術作品" : undefined,
+            title: card.title,
+            subtitle: card.type === "artwork" ? [card.artist, card.year].filter(Boolean).join("，") || undefined : undefined,
+            body: card.text,
+            imageUrl: cardImage,
+          }
+        : null,
+    [card, cardImage],
+  );
+
+  function goto(sid: string) {
+    setCard(null);
+    setSceneId(sid);
+  }
+
+  function step(d: number) {
+    if (!project || sceneIndex < 0) return;
+    const n = project.scenes.length;
+    goto(project.scenes[(sceneIndex + d + n) % n].id);
+  }
+
   function onHotspot(hid: string) {
     const h = scene?.hotspots.find((x) => x.id === hid);
     if (!h) return;
     if (h.type === "scene") {
-      if (h.targetSceneId) {
-        setCard(null);
-        setSceneId(h.targetSceneId);
-      }
+      if (h.targetSceneId) goto(h.targetSceneId);
     } else setCard(h);
   }
 
@@ -44,28 +117,33 @@ function ViewPageInner() {
   if (project === null || !scene)
     return (
       <p className="p-8">
-        {project ? "這個專案還沒有場景。" : "找不到這個專案。"}
+        {loadError ?? (project ? "這個專案還沒有場景。" : pub ? "找不到這個導覽，可能已經取消發布。" : "找不到這個專案。")}
         <Link href="/" className="ml-2 text-sky-700 underline">回首頁</Link>
       </p>
     );
 
   return (
     <div className="fixed inset-0 bg-black text-white">
-      {imageUrl && (
+      {imageUrl && !vrActive && (
         <PanoViewer
           imageUrl={imageUrl}
           initialView={scene.initialView}
-          hotspots={scene.hotspots.filter((h) => h.type !== "scene" || h.targetSceneId)}
+          hotspots={visibleHotspots}
           onHotspotClick={onHotspot}
           gyroscope
         />
       )}
 
       {/* 標題 */}
-      <div className="pointer-events-none absolute left-0 right-0 top-0 z-10 bg-gradient-to-b from-black/60 to-transparent p-4">
+      <div className="pointer-events-none absolute left-0 right-0 top-0 z-10 bg-gradient-to-b from-black/60 to-transparent p-4 pr-44">
         <p className="text-xs opacity-80">{PROJECT_TYPE_LABEL[project.type]}{project.author && ` · ${project.author}`}</p>
         <h1 className="text-lg font-semibold">{project.title}</h1>
         <p className="text-sm opacity-90">{scene.name}</p>
+      </div>
+
+      {/* VR 按鈕 */}
+      <div className="absolute right-3 top-3 z-20">
+        <VRLauncher scene={vrScene} card={vrCard} onHotspot={onHotspot} onPrev={() => step(-1)} onNext={() => step(1)} onActiveChange={setVrActive} />
       </div>
 
       {/* 場景縮圖列 */}
@@ -79,10 +157,7 @@ function ViewPageInner() {
               {project.scenes.map((s, i) => (
                 <li key={s.id}>
                   <button
-                    onClick={() => {
-                      setCard(null);
-                      setSceneId(s.id);
-                    }}
+                    onClick={() => goto(s.id)}
                     className={`block w-28 overflow-hidden rounded-md border-2 bg-black/50 text-left ${s.id === sceneId ? "border-yellow-400" : "border-transparent"}`}
                   >
                     <Thumb blobKey={s.thumbKey} alt={s.name} className="aspect-[2/1] w-full" />
@@ -96,7 +171,7 @@ function ViewPageInner() {
       )}
 
       {/* 熱點卡片 */}
-      {card && (
+      {card && !vrActive && (
         <div className="absolute inset-0 z-20 grid place-items-center bg-black/40 p-4" onClick={() => setCard(null)}>
           <article
             className="max-h-[85dvh] w-full max-w-lg overflow-y-auto rounded-xl bg-white p-5 text-slate-900 shadow-xl"
@@ -124,7 +199,9 @@ function ViewPageInner() {
             <h1 className="mt-1 text-2xl font-bold">{project.title}</h1>
             {project.author && <p className="mt-1 text-slate-600">{project.author}</p>}
             {project.description && <p className="mt-4 whitespace-pre-wrap">{project.description}</p>}
-            <p className="mt-4 text-sm text-slate-500">拖曳畫面環顧四周，點圓形圖示看說明或前往下一站。手機可開啟陀螺儀。</p>
+            <p className="mt-4 text-sm text-slate-500">
+              拖曳畫面環顧四周，點圓形圖示看說明或前往下一站。手機可開啟陀螺儀；有 VR 眼鏡或頭盔，按右上角的 VR 按鈕。
+            </p>
             <button onClick={() => setIntro(false)} className="mt-5 w-full rounded bg-sky-700 py-2.5 font-medium text-white">
               開始導覽（{project.scenes.length} 個場景）
             </button>

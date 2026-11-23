@@ -5,6 +5,7 @@ import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { nanoid } from "nanoid";
 import PanoViewer, { type PanoViewerHandle } from "@/components/PanoViewer";
 import Thumb from "@/components/Thumb";
+import PublishDialog from "@/components/PublishDialog";
 import { blobUrl, deleteBlob, exportProject, getProject, putBlob, saveProject } from "@/lib/store";
 import { processPanorama, processPhoto } from "@/lib/image";
 import {
@@ -18,7 +19,10 @@ import {
 } from "@/lib/types";
 
 function EditPageInner() {
-  const id = useSearchParams().get("id") ?? "";
+  const params = useSearchParams();
+  const id = params.get("id") ?? "";
+  // Google 登入回來時網址會帶 ?publish=1，自動打開發布視窗
+  const [publishOpen, setPublishOpen] = useState(params.get("publish") === "1");
   const [project, setProject] = useState<Project | null | undefined>(undefined);
   const [sceneId, setSceneId] = useState<string | null>(null);
   const [hotspotId, setHotspotId] = useState<string | null>(null);
@@ -165,6 +169,14 @@ function EditPageInner() {
         <span className="rounded bg-slate-100 px-2 py-0.5 text-xs">{PROJECT_TYPE_LABEL[project.type]}</span>
         <span className="text-xs text-slate-500">{saved ? "已儲存" : "儲存中…"}</span>
         <button onClick={onExport} className="rounded border px-3 py-1 text-sm">匯出專案檔</button>
+        <button
+          onClick={() => setPublishOpen(true)}
+          disabled={!project.scenes.length}
+          className="rounded bg-emerald-600 px-3 py-1 text-sm text-white disabled:opacity-50"
+          title={project.scenes.length ? "" : "先上傳至少一張全景圖"}
+        >
+          {project.publishedId ? "已發布 · 分享" : "發布到網路"}
+        </button>
         <Link href={`/view?id=${project.id}`} target="_blank" className="rounded bg-sky-700 px-3 py-1 text-sm text-white">
           預覽導覽
         </Link>
@@ -300,6 +312,17 @@ function EditPageInner() {
           </aside>
         )}
       </div>
+
+      {publishOpen && (
+        <PublishDialog
+          project={project}
+          onChange={(patch) => update((p) => ({ ...p, ...patch }))}
+          onClose={() => {
+            setPublishOpen(false);
+            if (params.get("publish")) history.replaceState(null, "", `?id=${project.id}`);
+          }}
+        />
+      )}
     </div>
   );
 }
