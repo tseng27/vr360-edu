@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:db": "bash supabase/tests/run.sh",
-    "test:e2e": "node e2e/classroom.e2e.cjs"
+    "test:e2e": "node e2e/classroom.e2e.cjs",
+    "test:e2e:vr": "node e2e/vr.e2e.cjs"
   },
   "dependencies": {
     "@photo-sphere-viewer/core": "^5.15.1",

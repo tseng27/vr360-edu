@@ -39,6 +39,9 @@ export interface Project {
   updatedAt: number;
   startSceneId?: string;
   scenes: Scene[];
+  /** 發布到網路後的公開 id（/view?pub=<id>） */
+  publishedId?: string;
+  publishedAt?: number;
 }
 
 export const PROJECT_TYPE_LABEL: Record<ProjectType, string> = {

@@ -11,8 +11,14 @@
 - 導覽播放器：拖曳環顧、手機陀螺儀、場景縮圖列、熱點卡片
 - 匯出 / 匯入專案檔（`.vr360.json`），在還沒有伺服器前可以用檔案交作業
 
-> 原型階段資料只存在瀏覽器的 IndexedDB（`src/lib/store.ts`），換電腦或清除瀏覽資料就會不見。
-> 下一步會換成 Supabase（Google 登入、雲端資料庫與檔案儲存），屆時只需替換 `store.ts`。
+- **VR 眼鏡模式**：手機放進 Cardboard 類 VR 眼鏡（iPhone / Android），或用 Meta Quest 等頭盔（WebXR）；
+  在 VR 裡注視或用手把選熱點切換場景、看說明卡，往下看有「上一站 / 下一站」
+- **發布到網路**：Google 帳號登入後上傳到雲端，得到網址與 QR Code，任何裝置都能開（需先設定 Supabase）
+
+使用方式與第一次設定步驟：[docs/vr](docs/vr/README.md)
+
+> 編輯中的專案存在瀏覽器的 IndexedDB（`src/lib/store.ts`），換電腦或清除瀏覽資料就會不見；
+> 發布後的版本存在 Supabase。換電腦繼續編輯請用匯出 / 匯入專案檔。
 
 ## 208 沉浸式探索教室（老師帶領、全班同步）
 
@@ -21,11 +27,10 @@
 
 ## 接下來
 
-1. Supabase：Google 帳號登入、雲端儲存、真正可分享的公開網址
+1. 雲端編輯（換電腦也能繼續改，不只發布）
 2. 班級與作業：教師建班、邀請碼、派作業、留言評分
 3. 路線地圖（Leaflet + OpenStreetMap）
-4. VR 頭盔模式（WebXR）
-5. 匯入 Google 街景下載工具的全景圖
+4. 匯入 Google 街景下載工具的全景圖
 
 ## 開發
 
@@ -34,6 +39,8 @@ npm install
 npm run dev     # http://localhost:3000
 npm run build
 npm test        # 教室模組單元測試
+npm run test:e2e:vr   # VR 模式瀏覽器測試（先開 npm run dev；BASE=網址 可改目標）
+npm run test:db       # 資料庫權限測試（需要本機 PostgreSQL）
 ```
 
 技術：Next.js 15、TypeScript、Tailwind CSS 4、[Photo Sphere Viewer 5](https://photo-sphere-viewer.js.org/)。

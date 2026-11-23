@@ -68,6 +68,12 @@ export async function deleteBlob(key: string): Promise<void> {
 }
 
 const urlCache = new Map<string, string>();
+
+/** 觀看已發布（雲端）的導覽時，圖片 key 對應到公開網址，而不是本機 IndexedDB */
+export function setRemoteMedia(map: Record<string, string>) {
+  for (const [k, url] of Object.entries(map)) urlCache.set(k, url);
+}
+
 export async function blobUrl(key: string): Promise<string | undefined> {
   const hit = urlCache.get(key);
   if (hit) return hit;
@@ -126,6 +132,8 @@ export async function importProject(file: File): Promise<Project> {
   const p: Project = {
     ...data.project,
     id: nanoid(10),
+    publishedId: undefined,
+    publishedAt: undefined,
     scenes: data.project.scenes.map((s) => ({
       ...s,
       imageKey: remap(s.imageKey)!,
